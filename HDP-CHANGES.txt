@@ -1,5 +1,6 @@
 -- Backport and Internal patches --
 
+OOZIE-1401 PurgeCommand should purge the workflow jobs w/o end_time (asasvari)
 OOZIE-2041 Add an admin command to run the PurgeXCommand (abhishekbafna)
 BUG-80807 Backport OOZIE-2748: NPE in LauncherMapper.printArgs()
 BUG-80806 Backport OOZIE-2727: OozieDBCLI creates temporary directories and do not delete them
