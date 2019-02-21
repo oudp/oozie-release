@@ -1,5 +1,6 @@
 -- Oozie later release
 
+OOZIE-3439 Hive2 action is not parsing application ID for TEZ from log file properly (shubham.chhabra via kmarton)
 OOZIE-3370 amend Property filtering is not consistent across job submission (andras.piros)
 OOZIE-3370 Property filtering is not consistent across job submission (andras.piros)
 
