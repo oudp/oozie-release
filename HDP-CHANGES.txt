@@ -1,5 +1,6 @@
 -- Backport and Internal patches --
 
+OOZIE-3440 [action] Oozie Spark action replaces path symlink # to %23 (dionusos via asalamon74)
 OOZIE-3156 Retry SSH action check when cannot connect to remote host
 OOZIE-2427 [Kerberos] Authentication failure for the javascript resources under /ext-2.2 (lianggz via andras.piros)
 BUG-107508 OOZIE-2488 Upgrade to latest OpenJPA version (abhishekbafna via jaydeepvishwakarma)
