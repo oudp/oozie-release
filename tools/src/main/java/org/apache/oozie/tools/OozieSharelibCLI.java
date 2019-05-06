@@ -39,9 +39,11 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.oozie.cli.CLIParser;
 import org.apache.oozie.service.HadoopAccessorService;
 import org.apache.oozie.service.Services;
@@ -60,6 +62,9 @@ public class OozieSharelibCLI {
     public static final String CONCURRENCY_OPT = "concurrency";
     public static final String OOZIE_HOME = "oozie.home.dir";
     public static final String SHARE_LIB_PREFIX = "lib_";
+
+    public static final String DIRECTORY_PERMISSION = "755";
+    public static final String FILE_PERMISSION = "544";
 
     private boolean used;
 
@@ -189,6 +194,7 @@ public class OozieSharelibCLI {
             // Special handling for spark/spark2 sharelib
             if (sharelibAction.equals(CREATE_CMD) || sharelibAction.equals(UPGRADE_CMD)) {
                 new SparkSharelibFixer(fs, oozieHome, srcPath, dstPath, srcFile).fixIt();
+                applySharelibPermission(fs, dstPath);
             }
             services.destroy();
             FileUtils.deleteDirectory(temp);
@@ -278,5 +284,25 @@ public class OozieSharelibCLI {
             }
         }
         return taskList;
+    }
+
+    private void applySharelibPermission(FileSystem fs, Path dstPath) throws IOException {
+        for(FileStatus stat: fs.listStatus(dstPath)) {
+            if(stat.isDirectory()) {
+                applyDirectoryPermission(fs, stat);
+                applySharelibPermission(fs, stat.getPath());
+            } else {
+                applyFilePermission(fs, stat);
+            }
+        }
+    }
+
+    private void applyDirectoryPermission(FileSystem fs, FileStatus stat) throws IOException {
+        fs.setPermission(stat.getPath(), new FsPermission(DIRECTORY_PERMISSION));
+    }
+
+
+    private void applyFilePermission(FileSystem fs, FileStatus stat) throws IOException {
+        fs.setPermission(stat.getPath(), new FsPermission(FILE_PERMISSION));
     }
 }
