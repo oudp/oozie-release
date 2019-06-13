@@ -3004,17 +3004,18 @@ function initConsole() {
 }
 // Client to send CSFR token
 Ext.Ajax.on('beforerequest', function(conn, options) {
-    const elements = document.getElementsByTagName("META");
-    const headerVal = "OOZIE-CSRF-HEADER";
-    var tokenElement;
-    for (i = 0; i < elements.length; i++) {
-        if (elements[i].name == "_csrf")
-        {
-             tokenElement = x[i];
+    var csrfCookie;
+    var cookies = document.cookie.split('; ');
+    for(i = 0; i < cookies.length; i++){
+        var splitted = cookies[i].split('=');
+        if (splitted[0] == "OOZIE-CSRF-TOKEN"){
+            csrfCookie = splitted[1]
+            break;
         }
     }
-    const token = tokenElement ? tokenElement.content : "";
-    Ext.Ajax.defaultHeaders = Ext.apply(Ext.Ajax.defaultHeaders || {}, { headerVal : token });
+    const token = csrfCookie ? csrfCookie.value : "";
+    Ext.Ajax.defaultHeaders = Ext.apply(Ext.Ajax.defaultHeaders || {},
+    {"OOZIE-CSRF-HEADER" : token });
 });
 
 // now the on ready function
