@@ -276,6 +276,13 @@ public class TestConfigurationService extends XTestCase {
         assertEquals(5000, ConfigurationService.getInt(SLAService.CONF_CAPACITY));
         assertFalse(ConfigurationService.getBoolean(ConfigurationService.CSRF_PROPERTY));
         assertFalse(ConfigurationService.getBoolean(ConfigurationService.XFRAME_PROPERTY));
+        assertFalse(ConfigurationService.getBoolean(ConfigurationService.HSTS_PROPERTY));
+        assertFalse(ConfigurationService.getBoolean(ConfigurationService.XSS_PROPERTY));
+        assertFalse(ConfigurationService.getBoolean(ConfigurationService.X_CONTENT_PROPERTY));
+        assertFalse(ConfigurationService.getBoolean(ConfigurationService.CACHE_CONTROL_PROPERTY));
+        assertEquals(31536000, ConfigurationService.getInt(ConfigurationService.HSTS_MAX_AGE_SECONDS));
+
+
         cl.destroy();
     }
 
