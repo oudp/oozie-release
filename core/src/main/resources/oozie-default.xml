@@ -1441,7 +1441,7 @@ will be the requeue interval for the actions which are waiting for a long time w
 
     <property>
         <name>oozie.db.schema.name</name>
-        <value>oozie</value>
+        <value>ooziemetastore</value>
         <description>
             Oozie DataBase Name
         </description>
