@@ -19,7 +19,6 @@
 package org.apache.oozie.util.db;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 import com.google.common.base.Strings;
 import org.apache.oozie.util.XLog;
@@ -45,6 +44,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.function.Predicate;
 
 public class FailingConnectionWrapper implements Connection {
     private static final XLog LOG = XLog.getLog(FailingConnectionWrapper.class);
@@ -162,7 +162,7 @@ public class FailingConnectionWrapper implements Connection {
     @Override
     public PreparedStatement prepareStatement(final String sql, final int resultSetType, final int resultSetConcurrency)
             throws SQLException {
-        if (oozieDmlStatementPredicate.apply(sql)) {
+        if (oozieDmlStatementPredicate.test(sql)) {
             LOG.trace("Injecting random failure. It's a DML statement of an Oozie table, preparing this statement might fail.");
             injector.inject(String.format("Deliberately failing to prepare statement. [sql=%s]", sql));
         }
@@ -348,7 +348,7 @@ public class FailingConnectionWrapper implements Connection {
                 "WF_ACTIONS", "WF_JOBS");
 
         @Override
-        public boolean apply(@Nullable String input) {
+        public boolean test(@Nullable String input) {
             Preconditions.checkArgument(!Strings.isNullOrEmpty(input));
 
             boolean isDmlStatement = false;
