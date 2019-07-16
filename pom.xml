@@ -102,7 +102,6 @@
         <spark.streaming.kafka.version>1.6.1</spark.streaming.kafka.version>
         <spark.bagel.version>1.6.1</spark.bagel.version>
 
-        <spark.guava.version>14.0.1</spark.guava.version>
         <spark.scala.binary.version>2.11</spark.scala.binary.version>
         <sqoop.classifier>hadoop100</sqoop.classifier>
         <streaming.version>${hadoop.version}</streaming.version>
@@ -1574,7 +1573,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>19.0</version>
+                <version>28.0-jre</version>
             </dependency>
 
             <dependency>
