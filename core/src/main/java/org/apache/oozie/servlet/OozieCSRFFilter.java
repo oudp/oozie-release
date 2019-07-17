@@ -38,7 +38,7 @@ public class OozieCSRFFilter extends RestCsrfPreventionFilter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        isCSRFEnabled = true; //enabled by default, filters can be configured in the web.xml
+        isCSRFEnabled = ConfigurationService.getBoolean(ConfigurationService.CSRF_PROPERTY);
         csrfHeader = ConfigurationService.get(ConfigurationService.CSRF_HEADER);
         csrfIgnoreMethods = ConfigurationService.get(ConfigurationService.CSRF_IGNORE_METHODS);
         csrfBrowserAgents = ConfigurationService.get(ConfigurationService.CSRF_BROWSER_AGENTS);
