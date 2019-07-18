@@ -1,5 +1,6 @@
 -- Oozie later release
 
+OOZIE-3024 Email action ignores value of content_type attribute when attachment attribute is set (matijhs via asalamon74)
 OOZIE-3405 SSH action shows empty error Message and Error code (matijhs via asalamon74)
 OOZIE-3439 Hive2 action is not parsing application ID for TEZ from log file properly (shubham.chhabra via kmarton)
 OOZIE-3370 amend Property filtering is not consistent across job submission (andras.piros)
