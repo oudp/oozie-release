@@ -19,8 +19,8 @@
 package org.apache.oozie.servlet;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Set;
@@ -31,12 +31,13 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.conf.Configuration;
 
 import org.apache.oozie.util.XLog;
 
@@ -53,16 +54,17 @@ public class RestCsrfPreventionFilter implements Filter {
 
     private static final XLog LOG = XLog.getLog(RestCsrfPreventionFilter.class);
 
-    public static final String HEADER_USER_AGENT = "User-Agent";
-    public static final String BROWSER_USER_AGENT_PARAM =
+    private static final String HEADER_USER_AGENT = "User-Agent";
+    private static final String BROWSER_USER_AGENT_PARAM =
             "browser-useragents-regex";
-    public static final String CUSTOM_HEADER_PARAM = "custom-header";
-    public static final String CUSTOM_METHODS_TO_IGNORE_PARAM =
+    private static final String CUSTOM_HEADER_PARAM = "custom-header";
+    private static final String CUSTOM_METHODS_TO_IGNORE_PARAM =
             "methods-to-ignore";
     static final String  BROWSER_USER_AGENTS_DEFAULT = "^Mozilla.*,^Opera.*";
-    public static final String HEADER_DEFAULT = "X-XSRF-HEADER";
+    private static final String HEADER_DEFAULT = "X-XSRF-HEADER";
     static final String  METHODS_TO_IGNORE_DEFAULT = "GET,OPTIONS,HEAD,TRACE";
-    private String  headerName = HEADER_DEFAULT;
+    static final String OOZIE_CSRF_COOKIE_NAME = "OOZIE-CSRF-TOKEN";
+    String  headerName = HEADER_DEFAULT;
     private Set<String> methodsToIgnore = null;
     private Set<Pattern> browserUserAgents;
 
@@ -118,7 +120,7 @@ public class RestCsrfPreventionFilter implements Filter {
      * @param userAgent The User-Agent String, or null if there isn't one
      * @return true if the User-Agent String refers to a browser, false if not
      */
-    protected boolean isBrowser(String userAgent) {
+    private boolean isBrowser(String userAgent) {
         if (userAgent == null) {
             return false;
         }
@@ -132,69 +134,73 @@ public class RestCsrfPreventionFilter implements Filter {
     }
 
     /**
-     * Defines the minimal API requirements for the filter to execute its
-     * filtering logic.  This interface exists to facilitate integration in
-     * components that do not run within a servlet container and therefore cannot
-     * rely on a servlet container to dispatch to the {@link #doFilter} method.
-     * Applications that do run inside a servlet container will not need to write
-     * code that uses this interface.  Instead, they can use typical servlet
-     * container configuration mechanisms to insert the filter.
-     */
-    public interface HttpInteraction {
-
-        /**
-         * Returns the value of a header.
-         *
-         * @param header name of header
-         * @return value of header
-         */
-        String getHeader(String header);
-
-        /**
-         * Returns the method.
-         *
-         * @return method
-         */
-        String getMethod();
-
-        /**
-         * Called by the filter after it decides that the request may proceed.
-         *
-         * @throws IOException if there is an I/O error
-         * @throws ServletException if the implementation relies on the servlet API
-         *     and a servlet API call has failed
-         */
-        void proceed() throws IOException, ServletException;
-
-        /**
-         * Called by the filter after it decides that the request is a potential
-         * CSRF attack and therefore must be rejected.
-         *
-         * @param code status code to send
-         * @param message response message
-         * @throws IOException if there is an I/O error
-         */
-        void sendError(int code, String message) throws IOException;
-    }
-
-    /**
-     * Handles an {@link HttpInteraction} by applying the filtering logic.
+     * Handles a request by applying the filtering logic.
      *
-     * @param httpInteraction caller's HTTP interaction
+     * @param request the incoming HTTP request from the client
+     * @param response the outgoing HTTP response for the filtered request
+     * @param chain the chain of configured active filters
      * @throws IOException if there is an I/O error
      * @throws ServletException if the implementation relies on the servlet API
      *     and a servlet API call has failed
      */
-    public void handleHttpInteraction(HttpInteraction httpInteraction)
+    private void handleHttpInteraction(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        if (!isBrowser(httpInteraction.getHeader(HEADER_USER_AGENT)) ||
-                methodsToIgnore.contains(httpInteraction.getMethod()) ||
-                httpInteraction.getHeader(headerName) != null) {
-            httpInteraction.proceed();
-        } else {
-            httpInteraction.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                    "Missing Required Header for CSRF Vulnerability Protection");
+        String csrfToken = loadToken(request);
+        if (csrfToken == null) {
+            LOG.debug("CSRF token not found in HTTP request, creating new token");
+            csrfToken = createNewToken();
+            saveToken(csrfToken, request, response);
         }
+
+        if (!isBrowser(request.getHeader(HEADER_USER_AGENT)) || methodsToIgnore.contains(request.getMethod())) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        String actualToken = request.getHeader(headerName);
+        if (!csrfToken.equals(actualToken)) {
+            LOG.debug("Missing Required Header for CSRF Vulnerability Protection");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing Required Header for CSRF Vulnerability Protection");
+            return;
+        }
+        chain.doFilter(request, response);
+    }
+
+    private String readCookieValue(HttpServletRequest request, String key) {
+        if (request.getCookies() == null) {
+            return null;
+        }
+        for(Cookie cookie : request.getCookies()){
+            if(cookie.getName().equals(key)){
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
+    private String loadToken(HttpServletRequest request) {
+        String token = readCookieValue(request, OOZIE_CSRF_COOKIE_NAME);
+        if (token == null || token.length() == 0) {
+            return null;
+        }
+        return token;
+    }
+
+    private String createNewToken() {
+        return RandomStringUtils.random(20, 0, 0, true, true, null, new SecureRandom());
+    }
+
+    private void saveToken(String token, HttpServletRequest request, HttpServletResponse response) {
+        String tokenValue = token == null ? "" : token;
+        Cookie cookie = new Cookie(OOZIE_CSRF_COOKIE_NAME, tokenValue);
+        int maxAge = -1;
+        if (token == null) {
+            maxAge = 0;
+        }
+        cookie.setMaxAge(maxAge);
+        cookie.setSecure(request.isSecure());
+        LOG.debug("Adding new CSRF token to response as {0}", OOZIE_CSRF_COOKIE_NAME);
+        response.addCookie(cookie);
     }
 
     @Override
@@ -202,76 +208,14 @@ public class RestCsrfPreventionFilter implements Filter {
                          final FilterChain chain) throws IOException, ServletException {
         final HttpServletRequest httpRequest = (HttpServletRequest)request;
         final HttpServletResponse httpResponse = (HttpServletResponse)response;
-        handleHttpInteraction(new ServletFilterHttpInteraction(httpRequest,
-                httpResponse, chain));
+        handleHttpInteraction(httpRequest, httpResponse, chain);
     }
 
     @Override
     public void destroy() {
     }
 
-    /**
-     * Constructs a mapping of configuration properties to be used for filter
-     * initialization.  The mapping includes all properties that start with the
-     * specified configuration prefix.  Property names in the mapping are trimmed
-     * to remove the configuration prefix.
-     *
-     * @param conf configuration to read
-     * @param confPrefix configuration prefix
-     * @return mapping of configuration properties to be used for filter
-     *     initialization
-     */
-    public static Map<String, String> getFilterParams(Configuration conf,
-                                                      String confPrefix) {
-        return conf.getPropsWithPrefix(confPrefix);
-    }
-
     void setHeaderName(String headerName) {
         this.headerName = headerName;
-    }
-
-    /**
-     * {@link HttpInteraction} implementation for use in the servlet filter.
-     */
-    private static final class ServletFilterHttpInteraction
-            implements HttpInteraction {
-
-        private final FilterChain chain;
-        private final HttpServletRequest httpRequest;
-        private final HttpServletResponse httpResponse;
-
-        /**
-         * Creates a new ServletFilterHttpInteraction.
-         *
-         * @param httpRequest request to process
-         * @param httpResponse response to process
-         * @param chain filter chain to forward to if HTTP interaction is allowed
-         */
-        public ServletFilterHttpInteraction(HttpServletRequest httpRequest,
-                                            HttpServletResponse httpResponse, FilterChain chain) {
-            this.httpRequest = httpRequest;
-            this.httpResponse = httpResponse;
-            this.chain = chain;
-        }
-
-        @Override
-        public String getHeader(String header) {
-            return httpRequest.getHeader(header);
-        }
-
-        @Override
-        public String getMethod() {
-            return httpRequest.getMethod();
-        }
-
-        @Override
-        public void proceed() throws IOException, ServletException {
-            chain.doFilter(httpRequest, httpResponse);
-        }
-
-        @Override
-        public void sendError(int code, String message) throws IOException {
-            httpResponse.sendError(code, message);
-        }
     }
 }

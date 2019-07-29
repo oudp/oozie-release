@@ -45,17 +45,14 @@ public class OozieCSRFFilter extends RestCsrfPreventionFilter {
         super.setHeaderName(csrfHeader);
         super.parseMethodsToIgnore(csrfIgnoreMethods);
         super.parseBrowserUserAgents(csrfBrowserAgents);
-        LOG.info("Initialized Oozie cross-site request forgery (CSRF) protection with, "
-                        + "headerName = {0}, methodsToIgnore = {1}, browserUserAgents = {2}, isCSRFEnabled = {3}",
+        LOG.info("Initialized Oozie cross-site request forgery (CSRF) protection with properties:" +
+                " headerName = {0}, methodsToIgnore = {1}, browserUserAgents = {2}; isCSFREnabled={3}",
                 csrfHeader, csrfIgnoreMethods, csrfBrowserAgents, isCSRFEnabled);
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
                          final FilterChain chain) throws IOException, ServletException {
-        LOG.debug("Oozie cross-site request forgery (CSRF) protection running with, "
-                        + "headerName = {0}, methodsToIgnore = {1}, browserUserAgents = {2}, isCSRFEnabled = {3}",
-                csrfHeader, csrfIgnoreMethods, csrfBrowserAgents, isCSRFEnabled);
         if (isCSRFEnabled) {
             super.doFilter(request, response, chain);
         } else {

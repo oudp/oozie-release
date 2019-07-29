@@ -32,17 +32,19 @@ import java.io.IOException;
 public class OozieXFrameOptionsFilter extends XFrameOptionsFilter {
 
     private static final XLog LOG = XLog.getLog(OozieXFrameOptionsFilter.class);
+    private boolean isXFrameEnabled;
 
     @Override
     public void init(FilterConfig config) throws ServletException {
+        this.isXFrameEnabled = ConfigurationService.getBoolean(ConfigurationService.XFRAME_PROPERTY);
+        LOG.info("Initialized XFrame-Option filter with property: DENY; isXFrameEnabled={0}", isXFrameEnabled);
+
         super.init(config);
     }
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
-        boolean isXFrameEnable = ConfigurationService.getBoolean(ConfigurationService.XFRAME_PROPERTY);
-        LOG.debug("Oozie XFrame-Option filter enabled status: " + isXFrameEnable);
-        if (isXFrameEnable) {
+        if (isXFrameEnabled) {
             super.doFilter(req, res, chain);
         } else {
             chain.doFilter(req, res);

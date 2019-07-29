@@ -3028,10 +3028,42 @@ will be the requeue interval for the actions which are waiting for a long time w
     </property>
 
     <property>
-        <name>oozie.service.ConfigurationService.csrf.filter.enabled</name>
+        <name>oozie.service.ConfigurationService.hsts.filter.enabled</name>
         <value>false</value>
         <description>
-            Oozie CSRF filter is disabled by default.
+            Oozie HTTP Strict Transport Security (HSTS) filter is disabled by default.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.ConfigurationService.hsts.filter.max.age.seconds</name>
+        <value>31536000</value>
+        <description>
+            Strict Transport Security max age in seconds if SSL is enabled. Ideally it is set to one year (31536000 sec).
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.ConfigurationService.xss.filter.enabled</name>
+        <value>false</value>
+        <description>
+            Oozie XSS Procetion filter is disabled by default.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.ConfigurationService.xcontent.filter.enabled</name>
+        <value>false</value>
+        <description>
+            Oozie X-Content-Type filter is disabled by default.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.ConfigurationService.cache.control.filter.enabled</name>
+        <value>false</value>
+        <description>
+            Oozie Cache-control filter is disabled by default.
         </description>
     </property>
 
@@ -3040,6 +3072,14 @@ will be the requeue interval for the actions which are waiting for a long time w
         <value>false</value>
         <description>
             XFrame filter is disabled by default.
+        </description>
+    </property>
+
+    <property>
+        <name>oozie.service.ConfigurationService.csrf.filter.enabled</name>
+        <value>false</value>
+        <description>
+            Oozie Cross Site Request Forgery (CSRF) filter is disabled by default.
         </description>
     </property>
 

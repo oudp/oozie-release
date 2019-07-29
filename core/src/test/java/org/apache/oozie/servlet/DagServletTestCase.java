@@ -18,6 +18,7 @@
 
 package org.apache.oozie.servlet;
 
+import org.apache.hadoop.security.http.XFrameOptionsFilter;
 import org.apache.oozie.service.AuthorizationService;
 import org.apache.oozie.service.ProxyUserService;
 import org.apache.oozie.service.Services;
@@ -87,8 +88,12 @@ public abstract class DagServletTestCase extends XDataTestCase {
             for (int i = 0; i < servletPath.length; i++) {
                 container.addServletEndpoint(servletPath[i], servletClass[i]);
             }
-            container.addFilter("*", HostnameFilter.class);
-            container.addFilter("*", AuthFilter.class);
+            container.addFilter("/*", HostnameFilter.class);
+            container.addFilter("/*", AuthFilter.class);
+            container.addFilter("/*", OozieXFrameOptionsFilter.class);
+            container.addFilter("/*", OozieHSTSFilter.class);
+            container.addFilter("/*", OozieXResponseHeaderFilter.class);
+            container.addFilter("/*", OozieCSRFFilter.class);
             setSystemProperty("user.name", getTestUser());
             container.start();
             assertions.call();

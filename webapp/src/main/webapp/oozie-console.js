@@ -3195,6 +3195,22 @@ function initConsole() {
 
     }
 }
+// Client to send CSFR token
+Ext.Ajax.on('beforerequest', function(conn, options) {
+    var csrfCookie;
+    var cookies = document.cookie.split('; ');
+    for(i = 0; i < cookies.length; i++){
+        var splitted = cookies[i].split('=');
+        if (splitted[0] == "OOZIE-CSRF-TOKEN"){
+            csrfCookie = splitted[1]
+            break;
+        }
+    }
+    const token = csrfCookie ? csrfCookie.value : "";
+    Ext.Ajax.defaultHeaders = Ext.apply(Ext.Ajax.defaultHeaders || {},
+    {"OOZIE-CSRF-HEADER" : token });
+});
+
 // now the on ready function
 Ext.onReady(function() {
     getSupportedVersions.execute();

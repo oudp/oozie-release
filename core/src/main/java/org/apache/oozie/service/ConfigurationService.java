@@ -83,6 +83,16 @@ public class ConfigurationService implements Service, Instrumentable {
 
     public static final String XFRAME_PROPERTY = CONF_PREFIX + "xframe.filter.enabled";
 
+    public static final String HSTS_PROPERTY = CONF_PREFIX + "hsts.filter.enabled";
+
+    public static final String HSTS_MAX_AGE_SECONDS = CONF_PREFIX + "hsts.filter.max.age.seconds";
+
+    public static final String XSS_PROPERTY = CONF_PREFIX + "xss.filter.enabled";
+
+    public static final String X_CONTENT_PROPERTY = CONF_PREFIX + "xcontent.filter.enabled";
+
+    public static final String CACHE_CONTROL_PROPERTY = CONF_PREFIX + "cache.control.filter.enabled";
+
     /**
      * System property that indicates the configuration directory.
      */
