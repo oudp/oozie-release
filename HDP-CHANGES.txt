@@ -1,5 +1,23 @@
 -- Backport and Internal patches --
 
+BUG-121299 Upgrade curator to 2.12.0
+BUG-121109 remove old guava, as Pig has been upgraded
+BUG-121109 upgrade guava to 28.0-jre, and remove spark specifig guava override
+BUG-120909 fix jackson annotations/databind
+BUG-120909 upgrade jackson dependency to 2.9.9.1
+BUG-120909 upgrade jackson dependency to 2.9.9
+BUG-120546 Add Oozie security headers to HDP-3.1.x line
+BUG-113476 Upgrade Apache Tomcat to version 7.0.94 in Oozie
+BUG-120369 Eliminate Jetty from Oozie rpms
+BUG-119955 OOZIE-3194 [tools] Oozie should set proper permissions to sharelib after upload
+BUG-118491 OOZIE-3439 Hive2 action is not parsing application ID for TEZ from log file properly (shubham.chhabra via kmarton)
+BUG-118773 Jackson upgrade to 2.9.8 due to CVE
+BUG-118405 OOZIE-3440 [action] Oozie Spark action replaces path symlink # to %23 (dionusos via asalamon74)
+BUG-116972 Upgrade jline version for Oozie sharelib TESTSUITE_FILE=oozie
+BUG-116998 OOZIE-3370 Property filtering is not consistent across job submission (andras.piros)
+
+-- Until HDP-3.1.0.0-78 --
+
 BUG-101450: Exclude commons-lang-2.4 from OpenJPA and fix the assumption about java opts
 BUG-101450: temporary fix for unit test problems for Pig
 BUG-101450 Add netty test dependencies to minitest subproject
