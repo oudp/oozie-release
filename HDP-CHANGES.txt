@@ -1,5 +1,6 @@
 -- Backport and Internal patches --
 
+BUG-121875 OOZIE-3542 Handle better HDFS implementation, where the server doesn't handle the setErasureCodingPolicy call
 BUG-121299 Upgrade curator to 2.12.0
 BUG-121109 remove old guava, as Pig has been upgraded
 BUG-121109 upgrade guava to 28.0-jre, and remove spark specifig guava override
