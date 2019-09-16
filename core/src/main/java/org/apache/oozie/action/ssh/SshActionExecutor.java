@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import org.apache.hadoop.util.StringUtils;
 
+import org.apache.oozie.ErrorCode;
 import org.apache.oozie.client.WorkflowAction;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.WorkflowAction.Status;
@@ -138,21 +139,7 @@ public class SshActionExecutor extends ActionExecutor {
                 String dataCommand = SSH_COMMAND_BASE + action.getTrackerUri() + " cat " + outFile;
                 LOG.debug("Ssh command [{0}]", dataCommand);
                 try {
-                    final Process process = Runtime.getRuntime().exec(dataCommand.split("\\s"));
-
-                    final StringBuffer outBuffer = new StringBuffer();
-                    final StringBuffer errBuffer = new StringBuffer();
-                    boolean overflow = false;
-                    drainBuffers(process, outBuffer, errBuffer, maxLen);
-                    LOG.trace("outBuffer={0}", outBuffer);
-                    LOG.trace("errBuffer={0}", errBuffer);
-                    if (outBuffer.length() > maxLen) {
-                        overflow = true;
-                    }
-                    if (overflow) {
-                        throw new ActionExecutorException(ActionExecutorException.ErrorType.ERROR,
-                                                          "ERR_OUTPUT_EXCEED_MAX_LEN", "unknown error");
-                    }
+                    final StringBuffer outBuffer = getActionOutputMessage(dataCommand);
                     context.setExecutionData(status.toString(), PropertiesUtils.stringToProperties(outBuffer.toString()));
                     LOG.trace("Execution data set. status={0}, properties={1}", status,
                             PropertiesUtils.stringToProperties(outBuffer.toString()));
@@ -171,6 +158,9 @@ public class SshActionExecutor extends ActionExecutor {
             if (status == Status.ERROR) {
                 LOG.warn("Execution data set to null in ERROR");
                 context.setExecutionData(status.toString(), null);
+                String actionErrorMsg = getActionErrorMessage(context, action);
+                LOG.warn("{0}: Script failed on remote host with [{1}]", ErrorCode.E1111, actionErrorMsg);
+                context.setErrorInfo(ErrorCode.E1111.toString(), actionErrorMsg);
             }
             else {
                 LOG.warn("Execution data not set");
@@ -178,6 +168,39 @@ public class SshActionExecutor extends ActionExecutor {
             }
         }
         LOG.trace("check() end for action={0}", action);
+    }
+
+    private StringBuffer getActionOutputMessage(String dataCommand) throws IOException, ActionExecutorException {
+        final Process process = Runtime.getRuntime().exec(dataCommand.split("\\s"));
+        final StringBuffer outBuffer = new StringBuffer();
+        final StringBuffer errBuffer = new StringBuffer();
+        boolean overflow = false;
+        drainBuffers(process, outBuffer, errBuffer, maxLen);
+        LOG.trace("outBuffer={0}", outBuffer);
+        LOG.trace("errBuffer={0}", errBuffer);
+        if (outBuffer.length() > maxLen) {
+            overflow = true;
+        }
+        if (overflow) {
+            throw new ActionExecutorException(ActionExecutorException.ErrorType.ERROR,
+                    "ERR_OUTPUT_EXCEED_MAX_LEN", "unknown error");
+        }
+        return outBuffer;
+    }
+
+    private String getActionErrorMessage(Context context, WorkflowAction action) throws ActionExecutorException {
+        String outFile = getRemoteFileName(context, action, "error", false, true);
+        String errorMsgCmd = SSH_COMMAND_BASE + action.getTrackerUri() + " cat " + outFile;
+        LOG.debug("Get error message command: [{0}]", errorMsgCmd);
+        String errorMessage;
+        try {
+            final StringBuffer outBuffer = getActionOutputMessage(errorMsgCmd);
+            errorMessage = outBuffer.toString().replaceAll("\n", "");
+        } catch (Exception ex) {
+            throw new ActionExecutorException(ActionExecutorException.ErrorType.ERROR, "ERR_UNKNOWN_ERROR",
+                    "unknown error", ex);
+        }
+        return errorMessage;
     }
 
     /**
@@ -418,7 +441,6 @@ public class SshActionExecutor extends ActionExecutor {
     protected String doExecute(String host, String dirLocation, String cmnd, String[] args, boolean ignoreOutput,
                                WorkflowAction action, String recoveryId, boolean preserveArgs)
                                throws IOException, InterruptedException {
-        XLog log = XLog.getLog(getClass());
         Runtime runtime = Runtime.getRuntime();
         String callbackPost = ignoreOutput ? "_" : ConfigurationService.get(HTTP_COMMAND_OPTIONS).replace(" ", "%%%");
         String preserveArgsS = preserveArgs ? "PRESERVE_ARGS" : "FLATTEN_ARGS";
@@ -426,8 +448,7 @@ public class SshActionExecutor extends ActionExecutor {
         String callBackUrl = Services.get().get(CallbackService.class)
                 .createCallBackUrl(action.getId(), EXT_STATUS_VAR);
         String command = XLog.format("{0}{1} {2}ssh-base.sh {3} {4} \"{5}\" \"{6}\" {7} {8} ", SSH_COMMAND_BASE, host, dirLocation,
-                preserveArgsS, ConfigurationService.get(HTTP_COMMAND), callBackUrl, callbackPost, recoveryId, cmnd)
-                .toString();
+                preserveArgsS, ConfigurationService.get(HTTP_COMMAND), callBackUrl, callbackPost, recoveryId, cmnd);
         String[] commandArray = command.split("\\s");
         String[] finalCommand;
         if (args == null) {
