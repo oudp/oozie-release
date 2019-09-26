@@ -1,5 +1,6 @@
 -- Oozie later release
 
+OOZIE-3544 Upgrade commons-beanutils to 1.9.4 (matijhs via asalamon74)
 OOZIE-3543 Upgrade quartz to 2.3.1 (matijhs via asalamon74)
 OOZIE-3024 Email action ignores value of content_type attribute when attachment attribute is set (matijhs via asalamon74)
 OOZIE-3405 SSH action shows empty error Message and Error code (matijhs via asalamon74)
