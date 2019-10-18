@@ -56,6 +56,8 @@ class SparkArgsExtractor {
     private static final String LOG4J_CONFIGURATION_JAVA_OPTION = "-Dlog4j.configuration=";
     private static final String SECURITY_TOKENS_HADOOPFS = "spark.yarn.security.tokens.hadoopfs.enabled";
     private static final String SECURITY_TOKENS_HIVE = "spark.yarn.security.tokens.hive.enabled";
+    private static final String SECURITY_TOKENS_HIVESERVER2 = "spark.yarn.security.tokens.hiveserver2.enabled";
+    private static final String SECURITY_TOKENS_HIVESTREAMING = "spark.yarn.security.tokens.hivestreaming.enabled";
     private static final String SECURITY_TOKENS_HBASE = "spark.yarn.security.tokens.hbase.enabled";
     private static final String SECURITY_CREDENTIALS_HADOOPFS = "spark.yarn.security.credentials.hadoopfs.enabled";
     private static final String SECURITY_CREDENTIALS_HIVE = "spark.yarn.security.credentials.hive.enabled";
@@ -138,6 +140,8 @@ class SparkArgsExtractor {
 
         boolean addedSecurityTokensHadoopFS = false;
         boolean addedSecurityTokensHive = false;
+        boolean addedSecurityTokensHiveserver2 = false;
+        boolean addedSecurityTokensHivestreaming = false;
         boolean addedSecurityTokensHBase = false;
 
         boolean addedSecurityCredentialsHadoopFS = false;
@@ -180,6 +184,12 @@ class SparkArgsExtractor {
                 }
                 if (opt.startsWith(SECURITY_TOKENS_HIVE)) {
                     addedSecurityTokensHive = true;
+                }
+                if (opt.startsWith(SECURITY_TOKENS_HIVESERVER2)) {
+                    addedSecurityTokensHiveserver2 = true;
+                }
+                if (opt.startsWith(SECURITY_TOKENS_HIVESTREAMING)) {
+                    addedSecurityTokensHivestreaming = true;
                 }
                 if (opt.startsWith(SECURITY_TOKENS_HBASE)) {
                     addedSecurityTokensHBase = true;
@@ -277,6 +287,14 @@ class SparkArgsExtractor {
         if (!addedSecurityTokensHive) {
             sparkArgs.add(CONF_OPTION);
             sparkArgs.add(SECURITY_TOKENS_HIVE + OPT_SEPARATOR + Boolean.toString(false));
+        }
+        if (!addedSecurityTokensHiveserver2) {
+            sparkArgs.add(CONF_OPTION);
+            sparkArgs.add(SECURITY_TOKENS_HIVESERVER2 + OPT_SEPARATOR + Boolean.toString(false));
+        }
+        if (!addedSecurityTokensHivestreaming) {
+            sparkArgs.add(CONF_OPTION);
+            sparkArgs.add(SECURITY_TOKENS_HIVESTREAMING + OPT_SEPARATOR + Boolean.toString(false));
         }
         if (!addedSecurityTokensHBase) {
             sparkArgs.add(CONF_OPTION);
