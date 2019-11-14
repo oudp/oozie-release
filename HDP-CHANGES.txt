@@ -1,6 +1,15 @@
 -- Backport and Internal patches --
 
-BUG-121875 OOZIE-3542 Handle better HDFS implementation, where the server doesn't handle the setErasureCodingPolicy call
+BUG-122141: jackson to 2.10.0
+OOZIE-3551 BUG-122014: Configure working defaults for Spark action in Oozie
+BUG-121899 OOZIE-3544 Upgrade commons-beanutils to 1.9.4 (matijhs via asalamon74)
+BUG-121900 OOZIE-3543 Upgrade quartz to 2.3.1 (matijhs via asalamon74)
+BUG-121875 OOZIE-3542: Handle better HDFS implementation, where the server doesn't handle the setErasureCodingPolicy call (handle all the reflective calls uniformly)
+BUG-121835 OOZIE-3024 Email action ignores value of content_type attribute when attachment attribute is set (matijhs via asalamon74)
+BUG-121836 OOZIE-3405 SSH action shows empty error Message and Error code (matijhs via asalamon74)
+
+-- Until HDP-3.1.4.0-78 --
+
 BUG-121299 Upgrade curator to 2.12.0
 BUG-121109 remove old guava, as Pig has been upgraded
 BUG-121109 upgrade guava to 28.0-jre, and remove spark specifig guava override
