@@ -18,11 +18,16 @@
 
 package org.apache.oozie.tools;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.ipc.RemoteException;
+import org.apache.hadoop.ipc.protobuf.RpcHeaderProtos.RpcResponseHeaderProto.RpcErrorCodeProto;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Utility class which can disable Erasure Coding for a given path.
@@ -38,28 +43,80 @@ public final class ECPolicyDisabler {
     private static final String SETERASURECODINGPOLICY_METHOD = "setErasureCodingPolicy";
     private static final String GETERASURECODINGPOLICY_METHOD = "getErasureCodingPolicy";
 
+    enum Result {
+        DONE, NO_SUCH_METHOD, ALREADY_SET, NOT_SUPPORTED;
+    }
+
     public static void tryDisableECPolicyForPath(FileSystem fs, Path path) {
+        switch (check(fs, path)) {
+            case DONE:
+                System.out.println("Done");
+                break;
+            case ALREADY_SET:
+                System.out.println("Current policy is already replication");
+                break;
+            case NOT_SUPPORTED:
+                System.out.println("Found Hadoop that does not support Erasure Coding. Not taking any action.");
+                break;
+            case NO_SUCH_METHOD:
+                System.out.println("HDFS Namenode doesn't support Erasure Coding.");
+                break;
+        }
+    }
+
+    static Result check(FileSystem fs, Path path) {
         if (fs instanceof DistributedFileSystem && supportsErasureCoding()) {
             System.out.println("Found Hadoop that supports Erasure Coding. Trying to disable Erasure Coding for path: "+ path);
             DistributedFileSystem dfs = (DistributedFileSystem) fs;
             final Object replicationPolicy = getReplicationPolicy();
             Method getErasureCodingPolicyMethod = getMethod(dfs, GETERASURECODINGPOLICY_METHOD);
-            final Object currentECPolicy = invokeMethod(getErasureCodingPolicyMethod, dfs, path);
+            final Pair<Object,Result> currentECPolicy = safeInvokeMethod(getErasureCodingPolicyMethod, dfs, path);
+            if (currentECPolicy.getRight() != null) {
+                return currentECPolicy.getRight();
+            }
 
-            if (currentECPolicy != replicationPolicy) {
+            if (currentECPolicy.getLeft() != replicationPolicy) {
                 Method setECPolicyMethod = getMethod(dfs, SETERASURECODINGPOLICY_METHOD);
                 Method policyGetNameMethod = getMethod(replicationPolicy, GETNAME_METHOD);
 
-                String name = (String) invokeMethod(policyGetNameMethod, replicationPolicy);
+                Pair<String,Result> pairName = safeInvokeMethod(policyGetNameMethod, replicationPolicy);
+                if (pairName.getRight() != null) {
+                    return pairName.getRight();
+                }
 
-                invokeMethod(setECPolicyMethod, dfs, path, name);
-                System.out.println("Done");
+                Pair<String,Result> result = safeInvokeMethod(setECPolicyMethod, dfs, path, pairName.getLeft());
+                if (result.getRight() != null) {
+                    return result.getRight();
+                }
+                return Result.DONE;
             } else {
-                System.out.println("Current policy is already replication");
+                return Result.ALREADY_SET;
             }
         } else {
-            System.out.println("Found Hadoop that does not support Erasure Coding. Not taking any action.");
+            return Result.NOT_SUPPORTED;
         }
+    }
+
+    private static <X> Pair<X, Result> safeInvokeMethod(Method method, Object instance, Object... args) {
+        try {
+            return Pair.of((X) invokeMethod(method, instance, args), null);
+        } catch (RuntimeException e) {
+            RpcErrorCodeProto errorCode = unwrapRemote(e);
+            if (errorCode == RpcErrorCodeProto.ERROR_NO_SUCH_METHOD) {
+                return Pair.of(null, Result.NO_SUCH_METHOD);
+            }
+            throw e;
+        }
+    }
+
+    private static RpcErrorCodeProto unwrapRemote(Throwable e) {
+        if (e instanceof InvocationTargetException) {
+            return unwrapRemote(e.getCause());
+        }
+        if (e instanceof RuntimeException) {
+            return unwrapRemote(e.getCause());
+        }
+        return (e instanceof RemoteException) ? ((RemoteException) e).getErrorCode() : null;
     }
 
     private static boolean supportsErasureCoding() {
@@ -106,6 +163,9 @@ public final class ECPolicyDisabler {
     private static Object invokeMethod(Method m, Object instance, Object... args) {
         try {
             return m.invoke(instance, args);
+        } catch (RuntimeException e) {
+            System.err.println("Error invoking method with reflection");
+            return e;
         } catch (Exception e) {
             System.err.println("Error invoking method with reflection");
             throw new RuntimeException(e);
