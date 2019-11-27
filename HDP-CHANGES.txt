@@ -1,5 +1,6 @@
 -- Backport and Internal patches --
 
+BUG-122534 OOZIE-3561 Forkjoin validation is slow when there are many actions in chain (dionusos, pbacsko via asalamon74)
 BUG-122141: jackson to 2.10.0
 OOZIE-3551 BUG-122014: Configure working defaults for Spark action in Oozie
 BUG-121899 OOZIE-3544 Upgrade commons-beanutils to 1.9.4 (matijhs via asalamon74)
