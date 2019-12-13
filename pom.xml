@@ -125,6 +125,8 @@
         <activemq.version>5.15.3</activemq.version>
         <kyro.version>3.0.3</kyro.version>
         <netty.version>4.0.52.Final</netty.version>
+
+        <jetty.version>9.3.25.v20180904</jetty.version>
     </properties>
 
     <modules>
@@ -221,7 +223,7 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-util-ajax</artifactId>
                 <version>9.3.24.v20180605</version>
-                <scope>compile</scope>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
