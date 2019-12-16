@@ -125,8 +125,6 @@
         <activemq.version>5.15.3</activemq.version>
         <kyro.version>3.0.3</kyro.version>
         <netty.version>4.0.52.Final</netty.version>
-
-        <jetty.version>9.3.25.v20180904</jetty.version>
     </properties>
 
     <modules>
@@ -203,12 +201,6 @@
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-util</artifactId>
-                <version>9.3.24.v20180605</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-io</artifactId>
                 <version>9.3.22.v20171030</version>
                 <scope>provided</scope>
@@ -216,12 +208,6 @@
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-webapp</artifactId>
-                <version>9.3.24.v20180605</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-util-ajax</artifactId>
                 <version>9.3.24.v20180605</version>
                 <scope>provided</scope>
             </dependency>
@@ -2353,19 +2339,11 @@
                         </exclusion>
                         <exclusion>
                             <groupId>org.eclipse.jetty</groupId>
-                            <artifactId>jetty-util</artifactId>
-                        </exclusion>
-                        <exclusion>
-                            <groupId>org.eclipse.jetty</groupId>
                             <artifactId>jetty-io</artifactId>
                         </exclusion>
                         <exclusion>
                             <groupId>org.eclipse.jetty</groupId>
                             <artifactId>jetty-webapp</artifactId>
-                        </exclusion>
-                        <exclusion>
-                            <groupId>org.eclipse.jetty</groupId>
-                            <artifactId>jetty-util-ajax</artifactId>
                         </exclusion>
                         <exclusion>
                             <groupId>org.eclipse.jetty</groupId>
