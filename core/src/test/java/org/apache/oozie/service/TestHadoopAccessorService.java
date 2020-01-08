@@ -18,6 +18,7 @@
 
 package org.apache.oozie.service;
 
+import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.oozie.test.XTestCase;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobClient;
@@ -27,6 +28,7 @@ import org.apache.oozie.util.IOUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
@@ -297,5 +299,16 @@ public class TestHadoopAccessorService extends XTestCase {
                     s1.equals(hae.getMessage()) || s2.equals(hae.getMessage()));
         }
         has.destroy();
+    }
+
+    public void testIfMRLimitsIsInitialized() throws IOException, ServiceException {
+        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("test-mapred-site.xml");
+        OutputStream os = new FileOutputStream(new File(getTestCaseConfDir() + "/hadoop-confx", "mapred-site.xml"));
+        IOUtils.copyStream(is, os);
+        HadoopAccessorService has = new HadoopAccessorService();
+        has.init(Services.get());
+        assertEquals("Limits class shall not use default value for number of counters.",
+                500,
+                has.createJobConf("jt").getInt(MRJobConfig.COUNTERS_MAX_KEY, 120));
     }
 }

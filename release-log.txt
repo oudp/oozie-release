@@ -1,5 +1,6 @@
 -- Oozie later release
 
+OOZIE-3578 MapReduce counters cannot be used over 120 (dionusos via pbacsko, gezapeti)
 OOZIE-3561 Forkjoin validation is slow when there are many actions in chain (dionusos, pbacsko via asalamon74)
 OOZIE-3544 Upgrade commons-beanutils to 1.9.4 (matijhs via asalamon74)
 OOZIE-3543 Upgrade quartz to 2.3.1 (matijhs via asalamon74)
