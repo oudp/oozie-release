@@ -1,5 +1,6 @@
 -- Oozie later release
 
+OOZIE-3586 Oozie spark actions using --keytab fail due to duplicate dist. cache (jmakai via asalamon74)
 OOZIE-3578 MapReduce counters cannot be used over 120 (dionusos via pbacsko, gezapeti)
 OOZIE-3561 Forkjoin validation is slow when there are many actions in chain (dionusos, pbacsko via asalamon74)
 OOZIE-3544 Upgrade commons-beanutils to 1.9.4 (matijhs via asalamon74)
