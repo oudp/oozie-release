@@ -293,7 +293,6 @@ public class TestSparkArgsExtractor {
         actionConf.set(SparkActionExecutor.SPARK_MODE, "client");
         actionConf.set(SparkActionExecutor.SPARK_CLASS, "org.apache.oozie.example.SparkFileCopy");
         actionConf.set(SparkActionExecutor.SPARK_JOB_NAME, "Spark Copy File");
-        actionConf.set(SparkActionExecutor.SPARK_DEFAULT_OPTS, "defaultProperty=1\ndefaultProperty2=2\ndefaultProperty3=3");
         actionConf.set(SparkActionExecutor.SPARK_OPTS,
                 "--principal foobar --keytab /foo/bar.keytab");
         actionConf.set(SparkActionExecutor.SPARK_JAR, "/lib/test.jar");
@@ -316,7 +315,6 @@ public class TestSparkArgsExtractor {
         actionConf.set(SparkActionExecutor.SPARK_MODE, "client");
         actionConf.set(SparkActionExecutor.SPARK_CLASS, "org.apache.oozie.example.SparkFileCopy");
         actionConf.set(SparkActionExecutor.SPARK_JOB_NAME, "Spark Copy File");
-        actionConf.set(SparkActionExecutor.SPARK_DEFAULT_OPTS, "defaultProperty=1\ndefaultProperty2=2\ndefaultProperty3=3");
         actionConf.set(SparkActionExecutor.SPARK_OPTS,
                 "--principal foobar --keytab foo");
         actionConf.set(SparkActionExecutor.SPARK_JAR, "/lib/test.jar");
